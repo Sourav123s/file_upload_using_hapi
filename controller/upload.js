@@ -13,8 +13,14 @@ async function uploads(req, res) {
 
   if (data.file) {
     const name = data.file.filename;
+    let fileArr = name.split(".");
+    let filename = fileArr[0];
+    let fileExt = fileArr[1];
+    // if (fileExt !== "png") {
+    //   return res.response("something went wrong").code(400);
+    // }
     const path = __basedir + "/uploads/" + name;
-    const inp = fs.createReadStream(name);
+    const inp = fs.createReadStream(data.file.path);
     const file = fs.createWriteStream(path);
 
     file.on("error", (err) => console.error(err));
