@@ -4,7 +4,9 @@ const AdmZip = require('adm-zip')
 const path = require('path')
 const Unrar = require('unrar')
 const nodeUnrar = require('node-unrar-js');
+const Busboy = require('busboy')
 const decompress = require('decompress');
+const decompressZip = require('decompress-zip')
 const user = require('../models').User
 module.exports = {
   uploads,
@@ -86,14 +88,23 @@ async function uploadMultiple(req, res) {
         uploadedInformation.push(uploadDoc)
       }
       console.log('done!');
-      return res.response({ uploadedInformation }).code(200)
+      return res.response({uploadedInformation}).code(200)
     } else if (mainExtation === 'rar') {
-      console.log(data.file);
-      archive = new Unrar(data.file._data);
+      // console.log(data.file);
+      let unzipper = new decompressZip(data.file._data)
+      console.log(unzipper.filename);
+      console.log('before new unzipper ');
+      let newUnzipper = new decompressZip(unzipper.filename)
 
-      archive.list(function (err, entries) {
-        var stream = archive.stream(entries); // name of entry
-        console.log(stream);
+
+      console.log(newUnzipper);
+      console.log('after new unzipper ');
+      unzipper.on('error', function (error) {
+        console.log('caugth an error :', error);
+      });
+
+      unzipper.on('extract', function (log) {
+        console.log('Finished extracting', log);
       });
 
     }
@@ -117,6 +128,27 @@ async function uploadMultiple(req, res) {
     console.log(`Something went wrong. ${e}`);
   }
 };
+
+
+// const unrar = require('node-unrar-js')
+
+// module.exports = async (req, res) => {
+//   try {
+//     const busboy = new Busboy({ headers: req.headers })
+//     busboy.on('finish', async () => {
+
+//       const fileData = req.files.file
+//       const extractor = unrar.createExtractorFromData(fileData.data)
+//       const list = extractor.getFileList()
+//       if (list[0].state === 'SUCCESS')
+//         //  Here I have the file names
+//         const fileNmes = list[1].fileHeaders.map(header => header.name)
+//       // ...
+
+//     })
+//     req.pipe(busboy)
+//   } catch (err) { return response.error(req, res, err, 'uploadProductFile_unexpected') }
+// }
 
 // this file is for the main project doc uploads 
 
